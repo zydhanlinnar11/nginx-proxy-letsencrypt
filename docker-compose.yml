@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+    nginx-proxy:
+        container_name: nginx-proxy
+        image: jwilder/nginx-proxy:alpine
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+            - ./certs:/etc/nginx/certs
+            - ./vhost:/etc/nginx/vhost.d
+            - ./html:/usr/share/nginx/html
+        networks:
+            - nginx-proxy-network
+            
+    acme-companion:
+        container_name: acme-companion
+        image: nginxproxy/acme-companion
+        env_file: .env
+        volumes_from:
+          - "nginx-proxy"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        networks:
+            - nginx-proxy-network
+
+networks:
+    nginx-proxy-network:
+        external: true
